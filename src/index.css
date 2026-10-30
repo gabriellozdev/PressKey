@@ -1,0 +1,136 @@
+@import "tailwindcss";
+
+@theme {
+  --color-void: #000000;
+  --color-carbon: #121316;
+  --color-plate: #1c1d22;
+  --color-edge: #2c2e35;
+  --color-steel: #8b909a;
+  --color-bone: #f3f0ea;
+  --color-red: #e10a17;
+  --color-ember: #ff4433;
+  --color-blood: #5c0207;
+
+  --font-ui: "Chakra Petch", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --animate-rise: rise .3s ease-out;
+}
+
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } }
+
+@layer base {
+  :root { color-scheme: dark; }
+  body {
+    @apply bg-void text-bone font-ui antialiased;
+    background:
+      radial-gradient(ellipse 70% 40% at 50% 100%, rgb(225 10 23 / .14), transparent 70%),
+      repeating-linear-gradient(135deg, #070708 0 2px, #000 2px 5px);
+    background-color: #000;
+    min-height: 100vh;
+  }
+  :focus-visible { outline: 2px solid var(--color-ember); outline-offset: 2px; }
+  kbd { @apply font-mono text-[.8em] px-1.5 border border-edge border-b-2 bg-plate; }
+}
+
+/* Chanfro dos painéis, como as bordas cortadas de periféricos gamer */
+@utility chamfer {
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+}
+@utility chamfer-sm {
+  clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
+}
+
+/* ---------- Área de digitação ----------
+   Inspirada no typing.com (observado com REA): cada letra é um bloco próprio,
+   sem cursor que desliza — só a letra atual muda de estado, então a resposta
+   é instantânea. O cursor é uma barra EMBAIXO da letra, e as linhas têm pauta. */
+.typing {
+  --pitch: calc(2.6em + 3px);           /* altura de uma linha (letra + margens + barra) */
+  font-family: var(--font-mono);
+  font-size: clamp(1.3rem, 2.8vw, 2rem);
+  font-weight: 500;
+  height: calc(3 * var(--pitch));
+  overflow: hidden;
+  position: relative;
+}
+.typing-lines {
+  display: flex;
+  flex-wrap: wrap;
+  will-change: transform;
+  transition: transform .12s ease-out;
+  background-image: repeating-linear-gradient(to bottom,
+    transparent 0 calc(var(--pitch) - 1px),
+    rgb(255 255 255 / .07) calc(var(--pitch) - 1px) var(--pitch));
+}
+.word { display: flex; }
+.letter {
+  position: relative;
+  display: inline-block;
+  min-width: .62em;
+  line-height: 1.6;
+  margin: .5em .06em;
+  border-bottom: 3px solid transparent;
+  color: var(--color-bone);
+  text-align: center;
+}
+.letter.is-ok { color: #6f7480; }
+.letter.is-bad { color: var(--color-ember); background: rgb(225 10 23 / .2); }
+.letter.is-bad.is-space { border-bottom-color: rgb(255 68 51 / .6); }
+.letter.is-active {
+  color: #fff;
+  border-bottom-color: var(--color-red);
+  box-shadow: 0 6px 10px -6px var(--color-red);
+}
+.typing.is-idle .letter.is-active { animation: bar-blink 1s steps(1) infinite; }
+@keyframes bar-blink { 50% { border-bottom-color: transparent; box-shadow: none; } }
+
+/* Letra digitada errada aparece embaixo, com um tremido rápido */
+.wrong-typed {
+  position: absolute;
+  left: 50%;
+  top: 88%;
+  font-size: .5em;
+  color: var(--color-ember);
+  transform: translateX(-50%);
+  animation: wrong-shake .35s ease-out;
+  pointer-events: none;
+}
+@keyframes wrong-shake {
+  0% { opacity: 0; transform: translateX(-50%) translateY(-30%); }
+  30% { transform: translateX(-80%) rotate(-8deg); }
+  60% { transform: translateX(-25%) rotate(6deg); }
+  100% { opacity: 1; transform: translateX(-50%); }
+}
+
+/* ---------- Teclado ---------- */
+.board { --u: min(52px, calc((100vw - 136px) / 15)); }
+.key {
+  width: calc(var(--w) * var(--u) + (var(--w) - 1) * 4px);
+  height: var(--u);
+  background: linear-gradient(180deg, #24252b, #18191d);
+  box-shadow: inset 0 -3px 0 #0a0a0c, inset 0 1px 0 #2f3138;
+  color: #a3a7b0;
+  font-size: calc(var(--u) * .3);
+  transition: background .2s, color .2s, box-shadow .2s;
+}
+.key.is-mod { font-size: calc(var(--u) * .21); color: #6c707a; }
+.key.is-next {
+  background: linear-gradient(180deg, var(--color-red), #a3060f);
+  color: #fff;
+  box-shadow: inset 0 -3px 0 var(--color-blood), 0 0 16px rgb(225 10 23 / .7);
+}
+.key.is-next-dead { background: var(--color-blood); color: var(--color-bone); box-shadow: inset 0 0 0 1px var(--color-red); }
+.key.is-hit { animation: key-hit .2s ease-out; }
+.key.is-miss { animation: key-miss .3s ease-out; }
+@keyframes key-hit { from { background: #3a3c44; transform: translateY(2px); } }
+@keyframes key-miss { from { background: #ffb020; color: #000; transform: translateY(2px); } }
+.board.is-heatmap .key {
+  background: color-mix(in srgb, var(--color-red) calc(var(--heat, 0) * 100%), #18191d);
+  box-shadow: inset 0 -3px 0 #0a0a0c, 0 0 calc(var(--heat, 0) * 20px) rgb(225 10 23 / calc(var(--heat, 0) * .8));
+  color: color-mix(in srgb, #fff calc(var(--heat, 0) * 100%), #6c707a);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "presskey",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -k -n api,web -c red,gray \"node --watch server/index.js\" \"vite\"",
+    "build": "vite build",
+    "start": "node server/index.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.10",
+    "@vitejs/plugin-react": "^4.5.2",
+    "concurrently": "^9.1.2",
+    "tailwindcss": "^4.1.10",
+    "vite": "^6.3.5"
+  }
+}
